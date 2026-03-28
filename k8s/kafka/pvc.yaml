@@ -1,0 +1,107 @@
+# Kafka PersistentVolumeClaims
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc-zookeeper-0
+  namespace: customer-success-fte
+  labels:
+    app: zookeeper
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: messaging
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc-zookeeper-1
+  namespace: customer-success-fte
+  labels:
+    app: zookeeper
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: messaging
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc-zookeeper-2
+  namespace: customer-success-fte
+  labels:
+    app: zookeeper
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: messaging
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc-kafka-0
+  namespace: customer-success-fte
+  labels:
+    app: kafka
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: messaging
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc-kafka-1
+  namespace: customer-success-fte
+  labels:
+    app: kafka
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: messaging
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc-kafka-2
+  namespace: customer-success-fte
+  labels:
+    app: kafka
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: messaging
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard

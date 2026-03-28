@@ -1,0 +1,17 @@
+openai==1.10.0
+openai-agents>=0.0.2
+anthropic==0.8.1
+langchain==0.1.4
+langchain-community==0.0.16
+langchain-openai==0.0.5
+tiktoken==0.5.2
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+httpx==0.26.0
+aiokafka==0.9.0
+sqlalchemy==2.0.25
+asyncpg==0.29.0
+redis==5.0.1
+structlog==24.1.0
+pydantic==2.5.3
+pydantic-settings==2.1.0

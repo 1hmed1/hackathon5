@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: customer-success-fte
+  labels:
+    name: customer-success-fte
+    environment: production
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: platform

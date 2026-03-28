@@ -1,0 +1,185 @@
+# Backend API Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: backend-api
+    component: api
+
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: frontend
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    protocol: TCP
+  selector:
+    app: frontend
+
+---
+# Worker Service (for metrics/scraping)
+apiVersion: v1
+kind: Service
+metadata:
+  name: worker-service
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: worker
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service for pod discovery
+  ports:
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: message-processor
+    component: worker
+
+---
+# Agent Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-service
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: agent
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8001
+    targetPort: 8001
+    protocol: TCP
+  selector:
+    app: agent
+
+---
+# PostgreSQL Service (for external or managed database)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: database
+spec:
+  type: ClusterIP
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: 5432
+    protocol: TCP
+  selector:
+    app: postgres
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: cache
+spec:
+  type: ClusterIP
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+    protocol: TCP
+  selector:
+    app: redis
+
+---
+# Kafka Service (headless for StatefulSet)
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-service
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: messaging
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service for StatefulSet
+  ports:
+  - name: kafka
+    port: 9092
+    targetPort: 9092
+    protocol: TCP
+  - name: controller
+    port: 9093
+    targetPort: 9093
+    protocol: TCP
+  selector:
+    app: kafka
+
+---
+# Zookeeper Service (headless for StatefulSet)
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-service
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: messaging
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service for StatefulSet
+  ports:
+  - name: client
+    port: 2181
+    targetPort: 2181
+    protocol: TCP
+  - name: follower
+    port: 2888
+    targetPort: 2888
+    protocol: TCP
+  - name: election
+    port: 3888
+    targetPort: 3888
+    protocol: TCP
+  selector:
+    app: zookeeper

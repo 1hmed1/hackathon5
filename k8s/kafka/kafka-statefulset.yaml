@@ -1,0 +1,252 @@
+# Kafka StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: customer-success-fte
+  labels:
+    app: kafka
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: messaging
+spec:
+  serviceName: kafka-service
+  replicas: 3
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      terminationGracePeriodSeconds: 60
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - kafka
+            topologyKey: kubernetes.io/hostname
+      initContainers:
+      - name: wait-for-zookeeper
+        image: busybox:1.36
+        imagePullPolicy: IfNotPresent
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for Zookeeper to be ready..."
+          until nc -z zookeeper-service 2181; do
+            echo "Zookeeper is unavailable - sleeping"
+            sleep 5
+          done
+          echo "Zookeeper is ready"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+      containers:
+      - name: kafka
+        image: confluentinc/cp-kafka:7.5.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: kafka
+          containerPort: 9092
+          protocol: TCP
+        - name: controller
+          containerPort: 9093
+          protocol: TCP
+        env:
+        - name: KAFKA_BROKER_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: "zookeeper-0.zookeeper-service:2181,zookeeper-1.zookeeper-service:2181,zookeeper-2.zookeeper-service:2181"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: "PLAINTEXT://$(POD_NAME).kafka-service.customer-success-fte.svc.cluster.local:9092,PLAINTEXT_HOST://$(POD_NAME).kafka-service:9092"
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+        - name: KAFKA_INTER_BROKER_LISTENER_NAME
+          value: "PLAINTEXT"
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+          value: "2"
+        - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+          value: "true"
+        - name: KAFKA_NUM_PARTITIONS
+          value: "3"
+        - name: KAFKA_DEFAULT_REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_LOG_RETENTION_HOURS
+          value: "168"
+        - name: KAFKA_LOG_SEGMENT_BYTES
+          value: "1073741824"
+        - name: KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS
+          value: "300000"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KAFKA_HEAP_OPTS
+          value: "-Xmx400M -Xms400M"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 3
+        startupProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 30
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/kafka/data
+        - name: logs
+          mountPath: /var/lib/kafka/log
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+        app: kafka
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: standard
+  - metadata:
+      name: logs
+      labels:
+        app: kafka
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+      storageClassName: standard
+
+---
+# Kafka PodDisruptionBudget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: kafka-pdb
+  namespace: customer-success-fte
+  labels:
+    app: kafka
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: kafka
+
+---
+# Kafka Topic Definitions (applied after Kafka is ready)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-topic-init
+  namespace: customer-success-fte
+  labels:
+    app: kafka
+    app.kubernetes.io/name: novasaas
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: kafka-topics
+        image: confluentinc/cp-kafka:7.5.0
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for Kafka to be ready..."
+          until kafka-broker-api-versions --bootstrap-server kafka-service:9092 > /dev/null 2>&1; do
+            echo "Kafka is unavailable - sleeping"
+            sleep 10
+          done
+          echo "Kafka is ready, creating topics..."
+          
+          # Create topics
+          kafka-topics --create --if-not-exists --bootstrap-server kafka-service:9092 \
+            --topic fte.tickets.incoming --partitions 3 --replication-factor 3
+          
+          kafka-topics --create --if-not-exists --bootstrap-server kafka-service:9092 \
+            --topic fte.channels.email.inbound --partitions 3 --replication-factor 3
+          
+          kafka-topics --create --if-not-exists --bootstrap-server kafka-service:9092 \
+            --topic fte.channels.whatsapp.inbound --partitions 3 --replication-factor 3
+          
+          kafka-topics --create --if-not-exists --bootstrap-server kafka-service:9092 \
+            --topic fte.channels.webform.inbound --partitions 3 --replication-factor 3
+          
+          kafka-topics --create --if-not-exists --bootstrap-server kafka-service:9092 \
+            --topic fte.escalations --partitions 1 --replication-factor 3
+          
+          kafka-topics --create --if-not-exists --bootstrap-server kafka-service:9092 \
+            --topic fte.metrics --partitions 3 --replication-factor 3
+          
+          kafka-topics --create --if-not-exists --bootstrap-server kafka-service:9092 \
+            --topic fte.dlq --partitions 1 --replication-factor 3
+          
+          kafka-topics --create --if-not-exists --bootstrap-server kafka-service:9092 \
+            --topic fte.agent.requests --partitions 3 --replication-factor 3
+          
+          kafka-topics --create --if-not-exists --bootstrap-server kafka-service:9092 \
+            --topic fte.agent.responses --partitions 3 --replication-factor 3
+          
+          echo "Topics created successfully!"
+          kafka-topics --list --bootstrap-server kafka-service:9092
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"

@@ -1,0 +1,163 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: message-processor
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/part-of: customer-success
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: message-processor
+      component: worker
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: message-processor
+        component: worker
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: novasaas-service-account
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: worker
+        image: novasaas/worker:latest
+        imagePullPolicy: Always
+        ports:
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        env:
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: novasaas-config
+              key: ENVIRONMENT
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: novasaas-config
+              key: LOG_LEVEL
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: novasaas-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: novasaas-config
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: novasaas-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: novasaas-config
+              key: POSTGRES_USER
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: novasaas-config
+              key: KAFKA_BOOTSTRAP_SERVERS
+        - name: KAFKA_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: novasaas-config
+              key: KAFKA_CONSUMER_GROUP
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: novasaas-config
+              key: REDIS_URL
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: novasaas-secrets
+              key: POSTGRES_PASSWORD
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: novasaas-secrets
+              key: POSTGRES_CONNECTION_STRING
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - pgrep
+            - -f
+            - message_processor.py
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - pgrep
+            - -f
+            - message_processor.py
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - message-processor
+              topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app: message-processor
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: message-processor-pdb
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: worker
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: message-processor

@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: novasaas-config
+  namespace: customer-success-fte
+  labels:
+    app.kubernetes.io/name: novasaas
+    app.kubernetes.io/component: config
+data:
+  # Application Settings
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  
+  # Database Configuration
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "novasaas"
+  POSTGRES_USER: "novasaas"
+  
+  # Kafka Configuration
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-broker-0.kafka:9092,kafka-broker-1.kafka:9092,kafka-broker-2.kafka:9092"
+  KAFKA_CONSUMER_GROUP: "novasaas-consumer"
+  KAFKA_AUTO_OFFSET_RESET: "latest"
+  KAFKA_ENABLE_AUTO_COMMIT: "false"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_URL: "redis://redis-service:6379"
+  
+  # Channel Configuration
+  CHANNEL_EMAIL_ENABLED: "true"
+  CHANNEL_WHATSAPP_ENABLED: "true"
+  CHANNEL_WEBFORM_ENABLED: "true"
+  CHANNEL_CHAT_ENABLED: "true"
+  CHANNEL_PHONE_ENABLED: "false"
+  
+  # Response Configuration
+  RESPONSE_MAX_LENGTH: "2000"
+  RESPONSE_WHATSAPP_MAX_LENGTH: "300"
+  RESPONSE_EMAIL_MAX_LENGTH: "5000"
+  
+  # AI Agent Configuration
+  AGENT_MODEL: "gpt-4o"
+  AGENT_TEMPERATURE: "0.7"
+  AGENT_MAX_TOKENS: "1024"
+  
+  # Kafka Topics
+  TOPIC_TICKETS_INCOMING: "fte.tickets.incoming"
+  TOPIC_CHANNELS_EMAIL: "fte.channels.email.inbound"
+  TOPIC_CHANNELS_WHATSAPP: "fte.channels.whatsapp.inbound"
+  TOPIC_CHANNELS_WEBFORM: "fte.channels.webform.inbound"
+  TOPIC_ESCALATIONS: "fte.escalations"
+  TOPIC_METRICS: "fte.metrics"
+  TOPIC_DLQ: "fte.dlq"
+  
+  # Feature Flags
+  FEATURE_AI_AUTO_RESPONSE: "true"
+  FEATURE_SENTIMENT_ANALYSIS: "true"
+  FEATURE_AUTO_ESCALATION: "true"
+  
+  # Health Check Settings
+  HEALTH_CHECK_INTERVAL: "30"
+  HEALTH_CHECK_TIMEOUT: "10"
+  
+  # Metrics Settings
+  METRICS_ENABLED: "true"
+  METRICS_PORT: "9090"
