@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Sidebar } from "@/components/Sidebar"
 import { ThemeToggle } from "@/components/ThemeProvider"
-import { api, type MetricsOverview, type Ticket } from "@/lib/api"
+import { api, type MetricsOverview, type Ticket as TicketType } from "@/lib/api"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  Ticket,
 } from "lucide-react"
 import {
   BarChart,
@@ -48,7 +49,7 @@ const statusVariants: Record<string, "default" | "success" | "warning" | "destru
 
 export default function Dashboard() {
   const [metrics, setMetrics] = useState<MetricsOverview | null>(null)
-  const [recentTickets, setRecentTickets] = useState<Ticket[]>([])
+  const [recentTickets, setRecentTickets] = useState<TicketType[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
