@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Sidebar } from "@/components/Sidebar"
-import { ThemeToggle } from "@/components/ThemeProvider"
-import { api, type MetricsOverview, type ChannelMetrics } from "@/lib/api"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Sidebar } from "../../components/Sidebar"
+import { ThemeToggle } from "../../components/ThemeProvider"
+import { api, type MetricsOverview, type ChannelMetrics } from "../../lib/api"
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import {
   BarChart,
   Bar,

@@ -165,8 +165,8 @@ async def lifespan(app: FastAPI):
         db_pool = await asyncpg.create_pool(
             host="localhost",
             port=5432,
-            user="postgres",
-            password="postgres",
+            user="novasaas",
+            password="devpassword",
             database="novasaas",
             min_size=5,
             max_size=20,

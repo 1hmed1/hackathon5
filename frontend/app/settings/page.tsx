@@ -1,10 +1,10 @@
 "use client"
 
-import { Sidebar } from "@/components/Sidebar"
-import { ThemeToggle } from "@/components/ThemeProvider"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Sidebar } from "../../components/Sidebar"
+import { ThemeToggle } from "../../components/ThemeProvider"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Button } from "../../components/ui/button"
+import { Badge } from "../../components/ui/badge"
 import {
   Bell,
   Mail,

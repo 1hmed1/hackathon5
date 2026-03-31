@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Sidebar } from "@/components/Sidebar"
-import { ThemeToggle } from "@/components/ThemeProvider"
-import { api, type Ticket } from "@/lib/api"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Sidebar } from "../../components/Sidebar"
+import { ThemeToggle } from "../../components/ThemeProvider"
+import { api, type Ticket } from "../../lib/api"
+import { Card, CardContent } from "../../components/ui/card"
+import { Badge } from "../../components/ui/badge"
+import { Button } from "../../components/ui/button"
 import {
   Mail,
   MessageCircle,

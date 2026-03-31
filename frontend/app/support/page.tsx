@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { ThemeToggle } from "@/components/ThemeProvider"
-import { api } from "@/lib/api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { ThemeToggle } from "../../components/ThemeProvider"
+import { api } from "../../lib/api"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Button } from "../../components/ui/button"
+import { Badge } from "../../components/ui/badge"
 import {
   Mail,
   User,

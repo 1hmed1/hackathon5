@@ -1,12 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Sidebar } from "@/components/Sidebar"
-import { ThemeToggle } from "@/components/ThemeProvider"
-import { api, type Customer } from "@/lib/api"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Sidebar } from "../../components/Sidebar"
+import { ThemeToggle } from "../../components/ThemeProvider"
+import { api, type Customer } from "../../lib/api"
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
+import { Badge } from "../../components/ui/badge"
+import { Button } from "../../components/ui/button"
 import {
   Mail,
   MessageCircle,
